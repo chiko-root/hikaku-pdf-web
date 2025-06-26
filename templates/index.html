@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Hikaku PDF-Web</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet">
+  <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid">
+    <div class="w-100 text-center">
+      <a class="navbar-brand" href="#">Hikaku PDF-Web</a>
+      <img src="{{ url_for('static', filename='icon.png') }}"
+           alt="アプリアイコン"
+           class="d-block mx-auto mt-1"
+           style="width:80px; height:80px;">
+    </div>
+  </div>
+</nav>
+
+<div class="container my-4">
+  <!-- フォームカード -->
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h5 class="card-title mb-4">PDF差分比較ツール(図面用)</h5>
+      <form id="compareForm"
+            action="/compare"
+            method="post"
+            enctype="multipart/form-data">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="pdf1" class="form-label">
+              ① 新しいPDF(10ページまでのみ可)
+            </label>
+            <input type="file"
+                   class="form-control"
+                   id="pdf1"
+                   name="pdf1"
+                   accept="application/pdf"
+                   required
+                   onchange="updateFileLabel('pdf1','label1')">
+            <div id="label1" class="form-text text-truncate"></div>
+          </div>
+          <div class="col-md-6">
+            <label for="pdf2" class="form-label">
+              ② 古いPDF(10ページまでのみ可)
+            </label>
+            <input type="file"
+                   class="form-control"
+                   id="pdf2"
+                   name="pdf2"
+                   accept="application/pdf"
+                   required
+                   onchange="updateFileLabel('pdf2','label2')">
+            <div id="label2" class="form-text text-truncate"></div>
+          </div>
+          <div class="col-md-6">
+            <label for="new_color" class="form-label">差分色（新）</label>
+            <select id="new_color" name="new_color" class="form-select">
+              <option selected>赤</option>
+              <option>オレンジ</option>
+              <option>マゼンダ</option>
+              <option>ピンク</option>
+              <option>青</option>
+              <option>緑</option>
+              <option>水色</option>
+              <option>黄緑</option>
+              <option>黒</option>
+              <option>白</option>
+              <option>グレー</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="old_color" class="form-label">差分色（旧）</label>
+            <select id="old_color" name="old_color" class="form-select">
+              <option>赤</option>
+              <option>オレンジ</option>
+              <option>マゼンダ</option>
+              <option>ピンク</option>
+              <option selected>青</option>
+              <option>緑</option>
+              <option>水色</option>
+              <option>黄緑</option>
+              <option>黒</option>
+              <option>白</option>
+              <option>グレー</option>
+            </select>
+          </div>
+
+          <!-- 比較実行ボタン -->
+          <div class="col-12 d-grid">
+            <button type="submit" class="btn btn-success">
+              ③ 比較実行
+            </button>
+          </div>
+        </div>
+
+        <!-- フラッシュメッセージ -->
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="alert alert-warning mt-3">
+              {{ messages[0] }}
+            </div>
+          {% endif %}
+        {% endwith %}
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 使用手順・注意点セクション -->
+<div class="container my-4">
+  <div class="card border-secondary shadow-sm">
+    <div class="card-body">
+      <h5 class="card-title text-secondary mb-3">
+        ご利用方法と注意事項
+      </h5>
+
+      <h6 class="mb-2">★使用手順</h6>
+      <ol class="mb-3">
+        <li>① 「新しいPDF」と「古いPDF」をアップロード（各10ページ以内）</li>
+        <li>② 差分色（新旧）を選択</li>
+        <li>③ 「比較実行」ボタンをクリック → 結果PDFを自動でダウンロード</li>
+      </ol>
+
+      <h6 class="mb-2">※注意点</h6>
+      <ul class="mb-0">
+        <li>対応ファイル形式は PDF のみです。</li>
+        <li>各PDFは最大10ページまで対応しています（製品版ではページ数制限なし）。</li>
+        <li>アップロードされたPDFは、処理完了後に自動でサーバーから削除されます。管理者や外部の第三者が内容を確認することはなく、安心してご利用いただけます。</li>
+        <li>PDFのページサイズが異なる場合でも、自動的にリサイズして比較します（例：A3とA1の図面なども対応可能）。</li>
+        <li>ページ位置やレイアウトが大きく異なる図面の自動調整機能はありません。できるだけ同じレイアウト構成のPDFをご利用ください。</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 製品版 Hikaku PDF Fast のご案内 -->
+<div class="container my-4">
+  <div class="card border-info shadow-sm">
+    <div class="card-body">
+      <h5 class="card-title mb-3" style="color: black;">
+        「Hikaku PDF-Fast」(製品版)のご案内
+      </h5>
+      <p>
+        高機能なデスクトップ版です。販売詳細は
+        <a href="https://note.com/chiko_root/n/n88a0fd5d76fa"
+           target="_blank" class="link-primary">
+          こちらの note
+        </a>
+        をご覧ください。
+      </p>
+      <ul class="list-unstyled mb-3">
+        <li>・PDFのページ数制限なし</li>
+        <li>・オフライン環境で動作、ネット認証不要</li>
+        <li>・DPI設定で軽量化・高解像度化を自由に</li>
+        <li>・しきい値設定で微細な変更を検出調整</li>
+        <li>・全設定の保存機能付き</li>
+        <li>・比較実行中に進捗バーを表示</li>
+        <li>・出力ファイル名は日付・新旧・色入りで自動命名</li>
+      </ul>
+      <p class="h6 mb-0">
+        価格：<strong>¥5,500</strong>（買い切り型）
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- 運営者情報・プライバシー・免責事項 -->
+<footer class="mt-5 mb-3">
+  <div class="container text-center text-muted small">
+    <hr>
+    <p class="mb-1">© 2025 Hikaku PDF-Web ｜運営：CHIKO</p>
+    <p class="mb-3">
+      お問い合わせ：
+      <a href="https://x.com/Chiko_root" target="_blank">@Chiko_root（X）</a>｜
+      <a href="https://note.com/chiko_root/n/n88a0fd5d76fa" target="_blank">販売詳細（note）</a>
+    </p>
+    <div class="text-start">
+      <h6 class="mb-1">プライバシーポリシー</h6>
+      <p class="mb-2">
+        本ツールでは、アップロードされたPDFファイルを一時的に使用し、
+        比較処理完了後にサーバーから自動で削除いたします。管理者を含め、
+        ファイルの内容が保存・閲覧されることはありません。
+      </p>
+      <h6 class="mb-1">免責事項</h6>
+      <p class="mb-0">
+        本ツールのご利用により発生したいかなる損害・不利益に関しても、
+        運営者は一切の責任を負いかねます。ご自身の責任において
+        ご利用ください。
+      </p>
+    </div>
+  </div>
+</footer>
+
+<!-- Bootstrap JS & カスタムJS -->
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+</script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+<!-- フラッシュ警告を5秒後に自動で消す -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const alertBox = document.querySelector(".alert-warning");
+    if (alertBox) {
+      setTimeout(() => { alertBox.style.display = "none"; }, 5000);
+    }
+  });
+</script>
+</body>
+</html>
